@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/film.dart';
+import '../pages/details.page.dart';
 
 class FilmCell extends StatelessWidget {
   const FilmCell({
@@ -16,7 +17,13 @@ class FilmCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {},
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => DetailsPage(film: film),
+          ),
+        );
+      },
       child: Stack(
         children: [
           AspectRatio(
