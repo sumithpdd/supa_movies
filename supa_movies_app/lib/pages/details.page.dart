@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:supa_movies_app/models/dummy_data.dart';
-
+import '../data/initialise_supabase.dart';
 import '../models/film.dart';
 import '../widgets/film_cell.dart';
 
@@ -15,11 +14,16 @@ class DetailsPage extends StatefulWidget {
 }
 
 class _DetailsPageState extends State<DetailsPage> {
-  late final List<Film> relatedFilmsFuture = dummydata;
+  late final Future<List<Film>> relatedFilmsFuture;
 
   @override
   void initState() {
     super.initState();
+    relatedFilmsFuture = supabase.rpc('get_related_film', params: {
+      'embedding': widget.film.embedding,
+      'film_id': widget.film.id,
+    }).withConverter<List<Film>>((data) =>
+        List<Map<String, dynamic>>.from(data).map(Film.fromJson).toList());
   }
 
   @override
@@ -59,24 +63,38 @@ class _DetailsPageState extends State<DetailsPage> {
               ],
             ),
           ),
-          Wrap(
-            children: relatedFilmsFuture
-                .map((film) => InkWell(
-                      onTap: () {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => DetailsPage(film: film)));
-                      },
-                      child: FractionallySizedBox(
-                        widthFactor: 0.5,
-                        child: FilmCell(
-                          film: film,
-                          isHeroEnabled: false,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ))
-                .toList(),
-          ),
+          FutureBuilder<List<Film>>(
+              future: relatedFilmsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(snapshot.error.toString()),
+                  );
+                }
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final films = snapshot.data!;
+                return Wrap(
+                  children: films
+                      .map((film) => InkWell(
+                            onTap: () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) =>
+                                      DetailsPage(film: film)));
+                            },
+                            child: FractionallySizedBox(
+                              widthFactor: 0.5,
+                              child: FilmCell(
+                                film: film,
+                                isHeroEnabled: false,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ))
+                      .toList(),
+                );
+              }),
         ],
       ),
     );
