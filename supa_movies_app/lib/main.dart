@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:supa_movies_app/pages/home_page.dart';
 
+import 'data/initialise_supabase.dart';
+
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  InitialiseSupabase.init();
   runApp(const MyApp());
 }
 
